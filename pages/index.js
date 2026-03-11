@@ -84,7 +84,7 @@ export default function App() {
         const res = await fetch("/api/chat", {
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, system:agent.system, tools:WEB_SEARCH_TOOL, messages:convo })
+          body:JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:2000, system:agent.system, tools:WEB_SEARCH_TOOL, messages:convo })
         });
         const data = await res.json();
         if (!data.content) throw new Error(data.error || "Sin respuesta");
