@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 
 const WEB_SEARCH_TOOL = [{ type: "web_search_20250305", name: "web_search" }];
 
-const SYSTEM_JUDICIAL = `Eres un experto en comunicación judicial argentina con acceso a búsqueda web. Podés buscar información, leer URLs y acceder a contenido online.
+const SYSTEM_JUDICIAL = `Eres un experto en comunicación judicial argentina con acceso a búsqueda web.
 
 Cuando el usuario te comparta contenido o URL, generás el Doble Producto:
 
@@ -17,7 +17,7 @@ Cuando el usuario te comparta contenido o URL, generás el Doble Producto:
 - Incluir citas textuales clave. Mencionar ciudad al inicio.
 - Prohibido inventar. Sin consejos.`;
 
-const SYSTEM_LIBRE = `Sos Claude, asistente de IA de Anthropic con acceso a búsqueda web. Podés leer URLs, buscar información actual y responder cualquier consulta. Respondé en español. Sé directo y preciso.`;
+const SYSTEM_LIBRE = `Sos Claude, asistente de IA de Anthropic con acceso a búsqueda web. Podés leer URLs, buscar información actual y responder cualquier consulta. El usuario es Ignacio Soto, abogado de Trelew, Chubut, Argentina. Respondé en español. Sé directo y preciso.`;
 
 const AGENTS = [
   { id: "judicial", label: "Agente Judicial", icon: "⚖️", accent: "#1a56a0", tag: "COMUNICACIÓN JUDICIAL", placeholder: "Pegá texto o URL de resolución...", system: SYSTEM_JUDICIAL },
@@ -65,6 +65,8 @@ export default function App() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
+  const [agentStatus, setAgentStatus] = useState("");
+  const [agentRunning, setAgentRunning] = useState(false);
   const bottomRef = useRef(null);
   const agent = AGENTS.find(a => a.id === activeId);
   const messages = histories[activeId];
@@ -84,7 +86,7 @@ export default function App() {
         const res = await fetch("/api/chat", {
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:2000, system:agent.system, tools:WEB_SEARCH_TOOL, messages:convo })
+          body:JSON.stringify({ model:"claude-haiku-4-5-20251001", max_tokens:2000, system:agent.system, tools:WEB_SEARCH_TOOL, messages:convo })
         });
         const data = await res.json();
         if (!data.content) throw new Error(data.error || "Sin respuesta");
@@ -104,8 +106,25 @@ export default function App() {
         break;
       }
     } catch(err) {
-      setHistories(h => ({ ...h, [activeId]:[...newHistory, { role:"assistant", content:`Error: ${JSON.stringify(err)}` }] }));
+      setHistories(h => ({ ...h, [activeId]:[...newHistory, { role:"assistant", content:`Error: ${err.message}` }] }));
     } finally { setLoading(false); setStatus(""); }
+  }
+
+  async function runAgent(texto) {
+    setAgentRunning(true);
+    setAgentStatus("⚖️ Procesando...");
+    try {
+      const res = await fetch("/api/agente", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ texto })
+      });
+      const data = await res.json();
+      if (data.ok) setAgentStatus("✅ Resultado enviado a ignacervo@gmail.com");
+      else setAgentStatus(`❌ Error: ${data.error}`);
+    } catch(err) {
+      setAgentStatus(`❌ Error: ${err.message}`);
+    } finally { setAgentRunning(false); }
   }
 
   return (
@@ -117,6 +136,31 @@ export default function App() {
           <div style={{ width:48, height:1.5, background:"linear-gradient(90deg, transparent, #4a7fd4, transparent)", margin:"10px auto 0" }} />
         </div>
 
+        {/* Agente Judicial Autónomo */}
+        <div style={{ background:"rgba(26,86,160,0.15)", border:"1.5px solid rgba(26,86,160,0.4)", borderRadius:16, padding:"16px 20px", marginBottom:20 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <div>
+              <div style={{ color:"#7baee8", fontSize:10, letterSpacing:2, textTransform:"uppercase" }}>AGENTE AUTÓNOMO</div>
+              <div style={{ color:"#e8edf8", fontSize:14, fontWeight:600, fontFamily:"'Segoe UI', sans-serif" }}>⚖️ Procesar Eureka → Email</div>
+            </div>
+            <button onClick={() => runAgent(null)} disabled={agentRunning} style={{ background:agentRunning?"#334":"linear-gradient(135deg, #1a56a0, #1a56a0cc)", border:"none", borderRadius:10, color:agentRunning?"#667":"#fff", fontSize:12, padding:"8px 16px", cursor:agentRunning?"not-allowed":"pointer", fontFamily:"'Segoe UI', sans-serif", letterSpacing:0.5 }}>
+              {agentRunning ? "Procesando..." : "▶ Ejecutar"}
+            </button>
+          </div>
+          <textarea placeholder="Opcional: pegá texto de un fallo para procesar. Si lo dejás vacío busca en Eureka." rows={2} style={{ width:"100%", background:"rgba(0,0,0,0.2)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"#c8d8f0", fontSize:12, padding:"8px 10px", fontFamily:"'Segoe UI', sans-serif", resize:"none", outline:"none", boxSizing:"border-box" }}
+            onKeyDown={e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();runAgent(e.target.value);} }}
+            id="agente-texto"
+          />
+          <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div style={{ fontSize:11, color:"#5b7ec4" }}>ENTER para ejecutar con el texto · botón para Eureka</div>
+            <button onClick={() => { const t=document.getElementById("agente-texto"); runAgent(t.value); }} disabled={agentRunning} style={{ background:"none", border:"1px solid #1a56a088", borderRadius:8, color:"#7baee8", fontSize:11, padding:"4px 12px", cursor:agentRunning?"not-allowed":"pointer", fontFamily:"'Segoe UI', sans-serif" }}>
+              Enviar texto
+            </button>
+          </div>
+          {agentStatus && <div style={{ marginTop:8, fontSize:12, color: agentStatus.startsWith("✅") ? "#4caf8a" : agentStatus.startsWith("❌") ? "#e57373" : "#7baee8", fontFamily:"'Segoe UI', sans-serif" }}>{agentStatus}</div>}
+        </div>
+
+        {/* Agent Tabs */}
         <div style={{ display:"flex", gap:12, marginBottom:20 }}>
           {AGENTS.map(a => (
             <button key={a.id} onClick={() => { setActiveId(a.id); setStatus(""); }} style={{ flex:1, padding:"14px 12px", borderRadius:14, border:activeId===a.id?`1.5px solid ${a.accent}88`:"1.5px solid rgba(255,255,255,0.08)", background:activeId===a.id?`linear-gradient(135deg, ${a.accent}22, ${a.accent}11)`:"rgba(255,255,255,0.04)", color:activeId===a.id?"#e8edf8":"#6a7b9e", cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:5, transition:"all 0.25s", backdropFilter:"blur(8px)", boxShadow:activeId===a.id?`0 4px 20px ${a.accent}33`:"none" }}>
@@ -127,6 +171,7 @@ export default function App() {
           ))}
         </div>
 
+        {/* Chat Card */}
         <div style={{ background:"rgba(255,255,255,0.97)", borderRadius:20, boxShadow:`0 8px 48px rgba(0,0,0,0.35), 0 0 0 1px ${agent.accent}22`, overflow:"hidden" }}>
           <div style={{ padding:"14px 20px", borderBottom:"1px solid #eaedf5", display:"flex", justifyContent:"space-between", alignItems:"center", background:`linear-gradient(135deg, ${agent.accent}08, transparent)` }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
@@ -139,8 +184,8 @@ export default function App() {
             <button onClick={() => setHistories(h => ({ ...h, [activeId]:[] }))} style={{ background:"none", border:"1px solid #e0e4ee", color:"#aab0c4", fontSize:11, padding:"5px 14px", borderRadius:8, cursor:"pointer", fontFamily:"'Segoe UI', sans-serif" }}>Limpiar</button>
           </div>
 
-          <div style={{ minHeight:340, maxHeight:440, overflowY:"auto", padding:"20px 18px 10px" }}>
-            {messages.length===0 && <div style={{ textAlign:"center", color:"#c8cedd", fontSize:13, marginTop:90, fontFamily:"'Segoe UI', sans-serif" }}><div style={{ fontSize:36, marginBottom:12, opacity:0.5 }}>{agent.icon}</div><div style={{ color:"#b0b8cc" }}>{agent.placeholder}</div></div>}
+          <div style={{ minHeight:300, maxHeight:400, overflowY:"auto", padding:"20px 18px 10px" }}>
+            {messages.length===0 && <div style={{ textAlign:"center", color:"#c8cedd", fontSize:13, marginTop:80, fontFamily:"'Segoe UI', sans-serif" }}><div style={{ fontSize:36, marginBottom:12, opacity:0.5 }}>{agent.icon}</div><div style={{ color:"#b0b8cc" }}>{agent.placeholder}</div></div>}
             {messages.map((m,i) => <Bubble key={i} msg={m} accent={agent.accent} icon={agent.icon} />)}
             {loading && (
               <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:10, alignItems:"center", gap:10 }}>
