@@ -104,7 +104,7 @@ export default function App() {
         break;
       }
     } catch(err) {
-      setHistories(h => ({ ...h, [activeId]:[...newHistory, { role:"assistant", content:`Error: ${err.message}` }] }));
+      setHistories(h => ({ ...h, [activeId]:[...newHistory, { role:"assistant", content:`Error: ${JSON.stringify(err)}` }] }));
     } finally { setLoading(false); setStatus(""); }
   }
 
