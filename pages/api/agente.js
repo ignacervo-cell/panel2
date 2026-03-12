@@ -2,14 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-async function fetchEurekaFallos() {
-  const url = "https://apps1cloud.juschubut.gov.ar/Eureka/Sentencias/Buscar/Fallos/";
-  const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
-  const html = await res.text();
-  return html;
-}
-
-async function procesarConClaude(texto) {
+async function procesarConClaude(contenido) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -19,8 +12,8 @@ async function procesarConClaude(texto) {
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000,
-      system: `Eres un experto en comunicación judicial argentina. Analizá el texto y generá el Doble Producto:
+      max_tokens: 4096,
+      system: `Eres un experto en comunicación judicial argentina. Analizá el texto y generá el Doble Producto COMPLETO sin cortar:
 
 1. FICHA TÉCNICA (Uso Interno)
 - Datos Duros: Expediente, fecha exacta (con hora si figura), montos con centavos, dominios de vehículos.
@@ -32,7 +25,7 @@ async function procesarConClaude(texto) {
 - Anonimizar si hay menores, familia o delitos sexuales.
 - Incluir citas textuales clave. Mencionar ciudad al inicio.
 - Prohibido inventar. Sin consejos.`,
-      messages: [{ role: "user", content: texto }],
+      messages: [{ role: "user", content: contenido }],
     }),
   });
   const data = await res.json();
@@ -43,17 +36,37 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   try {
-    // Si viene texto del usuario (fallo subido manualmente)
-    const { texto } = req.body;
+    const { texto, pdf } = req.body;
+    let contenido = "";
 
-    let contenido = texto;
-
-    // Si no hay texto manual, buscar en Eureka
-    if (!contenido) {
-      const html = await fetchEurekaFallos();
-      // Extraer texto relevante del HTML
-      contenido = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 8000);
+    if (pdf) {
+      // PDF en base64 — extraer texto via Claude
+      const resExtract = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 4096,
+          messages: [{
+            role: "user",
+            content: [
+              { type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf } },
+              { type: "text", text: "Extraé todo el texto de este documento judicial." }
+            ]
+          }]
+        }),
+      });
+      const dataExtract = await resExtract.json();
+      contenido = dataExtract.content?.[0]?.text || "";
+    } else {
+      contenido = texto || "";
     }
+
+    if (!contenido) return res.status(400).json({ error: "Sin contenido para procesar" });
 
     const resultado = await procesarConClaude(contenido);
 
@@ -61,7 +74,7 @@ export default async function handler(req, res) {
       from: "onboarding@resend.dev",
       to: "ignacervo@gmail.com",
       subject: "Agente Judicial — Nuevo procesamiento",
-      html: `<pre style="font-family: Arial; font-size: 14px; white-space: pre-wrap;">${resultado}</pre>`,
+      html: `<div style="font-family: Arial; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${resultado.replace(/\n/g, '<br>')}</div>`,
     });
 
     return res.status(200).json({ ok: true, resultado });
