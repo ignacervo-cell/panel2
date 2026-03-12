@@ -181,32 +181,6 @@ export default function App() {
           <div style={{ width:48, height:1.5, background:"linear-gradient(90deg, transparent, #4a7fd4, transparent)", margin:"10px auto 0" }} />
         </div>
 
-        {/* Agente Autónomo */}
-        <div style={{ background:"rgba(26,86,160,0.15)", border:"1.5px solid rgba(26,86,160,0.4)", borderRadius:16, padding:"16px 20px", marginBottom:20 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <div>
-              <div style={{ color:"#7baee8", fontSize:10, letterSpacing:2, textTransform:"uppercase" }}>AGENTE AUTÓNOMO</div>
-              <div style={{ color:"#e8edf8", fontSize:14, fontWeight:600, fontFamily:"'Segoe UI', sans-serif" }}>⚖️ Procesar → Email</div>
-            </div>
-            <div style={{ display:"flex", gap:8 }}>
-              <button onClick={() => agenteFileRef.current?.click()} disabled={agentRunning} style={{ background:"none", border:"1px solid #1a56a088", borderRadius:8, color:"#7baee8", fontSize:11, padding:"6px 12px", cursor:agentRunning?"not-allowed":"pointer", fontFamily:"'Segoe UI', sans-serif" }}>
-                📎 PDF
-              </button>
-              <input ref={agenteFileRef} type="file" accept=".pdf" style={{ display:"none" }} onChange={handleAgenteFile} />
-            </div>
-          </div>
-          <textarea id="agente-texto" placeholder="Pegá el texto del fallo aquí..." rows={2}
-            style={{ width:"100%", background:"rgba(0,0,0,0.2)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"#c8d8f0", fontSize:12, padding:"8px 10px", fontFamily:"'Segoe UI', sans-serif", resize:"none", outline:"none", boxSizing:"border-box" }}
-          />
-          <div style={{ marginTop:8, display:"flex", justifyContent:"flex-end" }}>
-            <button onClick={() => { const t=document.getElementById("agente-texto"); runAgente(t.value, null); }} disabled={agentRunning}
-              style={{ background:agentRunning?"#334":"linear-gradient(135deg, #1a56a0, #1a56a0cc)", border:"none", borderRadius:10, color:agentRunning?"#667":"#fff", fontSize:12, padding:"8px 20px", cursor:agentRunning?"not-allowed":"pointer", fontFamily:"'Segoe UI', sans-serif" }}>
-              {agentRunning ? "Procesando..." : "▶ Enviar al email"}
-            </button>
-          </div>
-          {agentStatus && <div style={{ marginTop:8, fontSize:12, color: agentStatus.startsWith("✅") ? "#4caf8a" : agentStatus.startsWith("❌") ? "#e57373" : "#7baee8", fontFamily:"'Segoe UI', sans-serif" }}>{agentStatus}</div>}
-        </div>
-
         {/* Tabs */}
         <div style={{ display:"flex", gap:12, marginBottom:20 }}>
           {AGENTS.map(a => (
