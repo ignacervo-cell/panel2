@@ -76,7 +76,7 @@ function SummaryPanel({agent}) {
       </div>
       <div style={{padding:"10px 12px",maxHeight:260,overflowY:"auto"}}>
         {!init?<div style={{color:"#2a3a5a",fontSize:11,fontFamily:"'Courier New',monospace"}}>Cargando...</div>
-        :data?.texto?<div style={{fontSize:11.5,color:"#b0bcd8",lineHeight:1.85,whiteSpace:"pre-wrap",fontFamily:"'Courier New',monospace"}}>{data.texto}</div>
+        :data?.texto?<div style={{fontSize:11.5,color:"#d8e4ff",lineHeight:1.85,whiteSpace:"pre-wrap",fontFamily:"'Courier New',monospace"}}>{data.texto}</div>
         :<div style={{textAlign:"center",padding:"14px 0"}}>
           <div style={{fontSize:10,color:"#3a4a6a",fontFamily:"'Courier New',monospace",marginBottom:8}}>Sin datos del día</div>
           <button onClick={refresh} disabled={loading} style={{background:`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`,border:"none",borderRadius:7,color:"#fff",fontSize:10,padding:"7px 18px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>{loading?"Generando...":"▶ Generar"}</button>
@@ -146,7 +146,7 @@ function ChatPanel({agent}) {
         {messages.map((m,i)=>{
           const isUser=m.role==="user"; const text=m.display||getText(m.content); if(!text) return null;
           return (<div key={i} style={{display:"flex",flexDirection:"column",alignItems:isUser?"flex-end":"flex-start"}}>
-            <div style={{maxWidth:"88%",padding:"9px 13px",borderRadius:isUser?"14px 14px 3px 14px":"3px 14px 14px 14px",background:isUser?`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`:"rgba(255,255,255,0.06)",color:isUser?"#fff":"#c0cce0",fontSize:12.5,lineHeight:1.75,whiteSpace:"pre-wrap",wordBreak:"break-word",fontFamily:"'Courier New',monospace"}}>{text}</div>
+            <div style={{maxWidth:"88%",padding:"9px 13px",borderRadius:isUser?"14px 14px 3px 14px":"3px 14px 14px 14px",background:isUser?`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`:"rgba(255,255,255,0.06)",color:isUser?"#fff":"#dde8ff",fontSize:12.5,lineHeight:1.75,whiteSpace:"pre-wrap",wordBreak:"break-word",fontFamily:"'Courier New',monospace"}}>{text}</div>
             {m.notaId&&<button onClick={()=>window.open(`/nota?id=${m.notaId}`,"_blank")} style={{marginTop:5,background:agent.accentDim,border:`1px solid ${agent.accentBorder}`,borderRadius:6,color:agent.accent,fontSize:10,padding:"4px 12px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>🔗 Ver Nota de Prensa</button>}
           </div>);
         })}
@@ -177,25 +177,25 @@ export default function App() {
   if(!unlocked) return <PasswordGate onUnlock={unlock}/>;
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#050d1f 0%,#0a1530 50%,#0d0820 100%)",padding:"18px 16px",fontFamily:"Georgia,serif"}}>
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0d1f4a 0%,#1a2d6b 50%,#0f1a3e 100%)",padding:"18px 16px",fontFamily:"Georgia,serif"}}>
       {/* Header */}
       <div style={{textAlign:"center",marginBottom:24}}>
-        <div style={{fontSize:9,letterSpacing:5,color:"#1e3a6a",textTransform:"uppercase",marginBottom:5,fontFamily:"'Courier New',monospace"}}>IGNACIO SOTO · TRELEW, CHUBUT</div>
-        <h1 style={{margin:0,fontSize:22,fontWeight:400,color:"#c0cce8",letterSpacing:3,textTransform:"uppercase"}}>Panel de Agentes</h1>
+        <div style={{fontSize:9,letterSpacing:5,color:"#4a6aaa",textTransform:"uppercase",marginBottom:5,fontFamily:"'Courier New',monospace"}}>IGNACIO SOTO · TRELEW, CHUBUT</div>
+        <h1 style={{margin:0,fontSize:22,fontWeight:400,color:"#e8f0ff",letterSpacing:3,textTransform:"uppercase"}}>Panel de Agentes</h1>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginTop:6}}>
           <div style={{height:"1px",width:60,background:"linear-gradient(90deg,transparent,#1e3a6a)"}}/>
-          <div style={{fontSize:8,letterSpacing:3,color:"#1e3a6a",fontFamily:"'Courier New',monospace"}}>SISTEMA DE INTELIGENCIA</div>
+          <div style={{fontSize:8,letterSpacing:3,color:"#4a6aaa",fontFamily:"'Courier New',monospace"}}>SISTEMA DE INTELIGENCIA</div>
           <div style={{height:"1px",width:60,background:"linear-gradient(90deg,#1e3a6a,transparent)"}}/>
         </div>
       </div>
 
       {/* Cards selector — always visible at top */}
-      <div style={{display:"flex",gap:12,justifyContent:"center",marginBottom:24,maxWidth:900,margin:"0 auto 24px"}}>
+      <div style={{display:"flex",gap:12,justifyContent:"center",marginBottom:24,maxWidth:1100,margin:"0 auto 24px"}}>
         {AGENTS.map(agent=>{
           const isActive=active?.id===agent.id;
           return (
             <button key={agent.id} onClick={()=>setActive(isActive?null:agent)}
-              style={{flex:1,padding:"14px 16px",borderRadius:14,border:`1.5px solid ${isActive?agent.accent:agent.accentBorder}`,background:isActive?agent.accentDim:"rgba(6,12,32,0.7)",cursor:"pointer",textAlign:"left",transition:"all 0.2s",boxShadow:isActive?`0 0 20px ${agent.accent}33`:"none",transform:isActive?"translateY(-2px)":"translateY(0)"}}>
+              style={{flex:1,padding:"14px 16px",borderRadius:14,border:`1.5px solid ${isActive?agent.accent:agent.accentBorder}`,background:isActive?agent.accentDim:"rgba(15,28,70,0.85)",cursor:"pointer",textAlign:"left",transition:"all 0.2s",boxShadow:isActive?`0 0 20px ${agent.accent}33`:"none",transform:isActive?"translateY(-2px)":"translateY(0)"}}>
               <div style={{fontSize:24,marginBottom:6}}>{agent.icon}</div>
               <div style={{fontSize:8.5,letterSpacing:2.5,color:isActive?agent.accent:"#3a4a6a",textTransform:"uppercase",fontFamily:"'Courier New',monospace",marginBottom:3}}>{agent.tag}</div>
               <div style={{fontSize:12.5,color:isActive?"#e0e8ff":"#5a6a8a",fontFamily:"'Courier New',monospace"}}>{agent.label}</div>
@@ -207,7 +207,7 @@ export default function App() {
 
       {/* Main panel — expands when agent selected */}
       {active && (
-        <div style={{maxWidth:900,margin:"0 auto",background:"rgba(6,12,32,0.9)",border:`1.5px solid ${active.accentBorder}`,borderRadius:18,padding:20,boxShadow:`0 8px 48px rgba(0,0,0,0.6), 0 0 40px ${active.accent}18`,display:"flex",flexDirection:"column",minHeight:600}}>
+        <div style={{maxWidth:1100,margin:"0 auto",background:"rgba(10,20,55,0.95)",border:`1.5px solid ${active.accentBorder}`,borderRadius:18,padding:20,boxShadow:`0 8px 48px rgba(0,0,0,0.6), 0 0 40px ${active.accent}18`,display:"flex",flexDirection:"column",minHeight:680}}>
           {/* Panel header */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,paddingBottom:14,borderBottom:`1px solid ${active.accentBorder}`}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
