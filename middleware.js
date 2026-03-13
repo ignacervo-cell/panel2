@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 
-const PASSWORD = 'trelew2026';
-
 export function middleware(req) {
   const auth = req.cookies.get('auth')?.value;
-  if (auth === PASSWORD) return NextResponse.next();
+  if (auth === 'trelew2026') return NextResponse.next();
   const url = req.nextUrl.clone();
   if (url.pathname === '/login') return NextResponse.next();
   url.pathname = '/login';
