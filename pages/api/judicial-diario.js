@@ -16,23 +16,16 @@ export default async function handler(req, res) {
         model: "claude-haiku-4-5-20251001",
         max_tokens: 4096,
         tools: [{ type: "web_search_20250305", name: "web_search" }],
-        system: `Sos un experto en jurisprudencia de Chubut, Argentina. Seguí estos pasos:
+        system: `Sos un experto en jurisprudencia de Chubut, Argentina. Buscá y resumí las novedades judiciales más recientes siguiendo estos pasos:
 
-1. Accedé a esta URL y listá todos los fallos que aparecen: https://www.saij.gob.ar/resultados.jsp?o=0&p=25&f=Total%7CFecha%7CEstado%20de%20Vigencia%5B5%2C1%5D%7CTema%5B5%2C1%5D%7COrganismo%5B5%2C1%5D%7CAutor%5B5%2C1%5D%7CJurisdicci%F3n/Local/Chubut%7CTribunal%5B5%2C1%5D%7CPublicaci%F3n%5B5%2C1%5D%7CColecci%F3n%20tem%E1tica%5B5%2C1%5D%7CTipo%20de%20Documento/Jurisprudencia&s=fecha-rango|DESC&v=colapsada
+1. Buscá en jusnoticias.juschubut.gov.ar las últimas noticias. Para cada nota encontrá: título, fecha, sumario de 2 líneas y enlace.
 
-2. Para cada fallo de la lista, entrá al enlace del fallo y leé el contenido completo. Luego escribí:
-- TÍTULO del fallo
-- TRIBUNAL y FECHA
-- SUMARIO: 2-3 líneas explicando de qué trata, qué se resolvió y por qué es relevante
-- ENLACE directo al fallo en SAIJ
+2. Buscá en saij.gob.ar los fallos más recientes de Chubut (jurisprudencia). Para cada fallo: título, tribunal, fecha, sumario de 2-3 líneas con qué se resolvió y por qué es relevante, y enlace directo.
 
-3. Accedé a https://jusnoticias.juschubut.gov.ar y para cada posteo nuevo escribí:
-- TÍTULO
-- SUMARIO: 1-2 líneas
-- ENLACE al posteo
+3. Buscá en juschubut.gov.ar noticias institucionales recientes.
 
-Presentá todo ordenado por fecha, del más reciente al más antiguo.`,
-        messages: [{ role: "user", content: "Buscá y resumí los fallos y novedades judiciales de Chubut." }]
+Presentá todo ordenado del más reciente al más antiguo. Incluí siempre el enlace para cada item. Si no encontrás algo, buscalo de otra forma antes de decir que no hay.`,
+        messages: [{ role: "user", content: "Buscá las novedades judiciales de Chubut más recientes." }]
       })
     });
     const data = await resp.json();
