@@ -1,8 +1,7 @@
 {
   "crons": [
-    {
-      "path": "/api/cron/financiero",
-      "schedule": "0 11 * * *"
-    }
+    { "path": "/api/cron/financiero", "schedule": "0 11 * * *" },
+    { "path": "/api/cron/judicial", "schedule": "0 11 * * *" },
+    { "path": "/api/cron/libre", "schedule": "0 10 * * *" }
   ]
 }
