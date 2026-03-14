@@ -1,78 +1,52 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
-export default function NotaPage() {
+export default function Nota() {
   const router = useRouter();
   const { id } = router.query;
-  const [nota, setNota] = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
-    try {
-      const data = localStorage.getItem(`nota_${id}`);
-      if (data) setNota(JSON.parse(data));
-    } catch(e) {}
-    setLoading(false);
+    fetch(`/api/nota?id=${id}`)
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
   }, [id]);
 
-  function descargarPDF() {
-    window.print();
+  function copiar() {
+    if (data?.texto) navigator.clipboard.writeText(data.texto);
   }
 
-  if (loading) return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#f8f9fa", fontFamily:"Georgia, serif" }}>
-      <div style={{ color:"#666" }}>Cargando...</div>
-    </div>
-  );
-
-  if (!nota) return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#f8f9fa", fontFamily:"Georgia, serif" }}>
-      <div style={{ textAlign:"center", color:"#666" }}>
-        <div style={{ fontSize:48, marginBottom:16 }}>⚖️</div>
-        <div>Nota no encontrada o expirada.</div>
-      </div>
-    </div>
-  );
-
   return (
-    <>
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          body { margin: 0; }
-        }
-      `}</style>
-      <div style={{ minHeight:"100vh", background:"#f8f9fa", fontFamily:"Georgia, serif", padding:"40px 20px" }}>
-        <div style={{ maxWidth:720, margin:"0 auto" }}>
-          
-          {/* Header */}
-          <div style={{ background:"#1a56a0", color:"#fff", padding:"24px 32px", borderRadius:"12px 12px 0 0", marginBottom:0 }}>
-            <div style={{ fontSize:10, letterSpacing:3, textTransform:"uppercase", opacity:0.7, marginBottom:6 }}>PODER JUDICIAL · CHUBUT</div>
-            <h1 style={{ margin:0, fontSize:22, fontWeight:600, lineHeight:1.3 }}>Nota de Prensa</h1>
-            <div style={{ fontSize:12, opacity:0.7, marginTop:6 }}>{nota.fecha || new Date().toLocaleDateString("es-AR", { day:"numeric", month:"long", year:"numeric" })}</div>
+    <div style={{ minHeight:"100vh", background:"linear-gradient(160deg,#e8edf8,#f0f4ff)", padding:"32px 16px", fontFamily:"Georgia, serif" }}>
+      <div style={{ maxWidth:720, margin:"0 auto" }}>
+        <div style={{ marginBottom:20, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ fontSize:9, letterSpacing:4, color:"#8a9ab0", textTransform:"uppercase", fontFamily:"'Courier New',monospace", marginBottom:4 }}>NOTA DE PRENSA</div>
+            <h1 style={{ margin:0, fontSize:20, fontWeight:400, color:"#1a2a50" }}>Comunicación Judicial</h1>
           </div>
-
-          {/* Content */}
-          <div style={{ background:"#fff", padding:"32px", borderRadius:"0 0 12px 12px", boxShadow:"0 4px 24px rgba(0,0,0,0.08)", lineHeight:1.8, fontSize:15, color:"#1c1e2d", whiteSpace:"pre-wrap" }}>
-            {nota.notaPrensaTexto || nota.texto}
-          </div>
-
-          {/* Actions */}
-          <div className="no-print" style={{ marginTop:24, display:"flex", gap:12, justifyContent:"center" }}>
-            <button onClick={descargarPDF} style={{ background:"#1a56a0", color:"#fff", border:"none", borderRadius:10, padding:"12px 28px", fontSize:14, cursor:"pointer", fontFamily:"Georgia, serif", display:"flex", alignItems:"center", gap:8 }}>
-              📄 Descargar PDF
-            </button>
-            <button onClick={() => router.push("/")} style={{ background:"none", color:"#1a56a0", border:"1.5px solid #1a56a0", borderRadius:10, padding:"12px 28px", fontSize:14, cursor:"pointer", fontFamily:"Georgia, serif" }}>
-              ← Volver al Panel
-            </button>
-          </div>
-
-          <div className="no-print" style={{ marginTop:16, textAlign:"center", fontSize:11, color:"#aaa" }}>
-            Generado por el Panel de Agentes · Ignacio Soto · Trelew, Chubut
-          </div>
+          <button onClick={() => window.close()} style={{ background:"none", border:"1px solid #c0c8e0", borderRadius:8, color:"#6a7a9a", fontSize:12, padding:"7px 16px", cursor:"pointer" }}>✕ Cerrar</button>
         </div>
+
+        {loading ? (
+          <div style={{ textAlign:"center", padding:60, color:"#8a9ab0", fontFamily:"'Courier New',monospace", fontSize:13 }}>Cargando...</div>
+        ) : !data?.texto ? (
+          <div style={{ textAlign:"center", padding:60 }}>
+            <div style={{ fontSize:36, marginBottom:12 }}>📄</div>
+            <div style={{ color:"#8a9ab0", fontFamily:"'Courier New',monospace", fontSize:13 }}>Nota no encontrada o expirada.</div>
+          </div>
+        ) : (
+          <div style={{ background:"#fff", borderRadius:16, padding:32, boxShadow:"0 4px 24px rgba(0,0,0,0.08)" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, paddingBottom:16, borderBottom:"1px solid #e8edf5" }}>
+              <div style={{ fontSize:11, color:"#8a9ab0", fontFamily:"'Courier New',monospace" }}>{data.fecha}</div>
+              <button onClick={copiar} style={{ background:"linear-gradient(135deg,#2563eb,#1d4ed8)", border:"none", borderRadius:8, color:"#fff", fontSize:11, padding:"7px 18px", cursor:"pointer", fontFamily:"'Courier New',monospace" }}>📋 Copiar texto</button>
+            </div>
+            <div style={{ fontSize:15, lineHeight:1.9, color:"#1a2a50", whiteSpace:"pre-wrap" }}>{data.texto}</div>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }

@@ -91,11 +91,36 @@ function ChatPanel({agent}) {
   const fileRef=useRef(null); const bottomRef=useRef(null);
   useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:"smooth"}); },[messages,loading]);
 
+  const voiceTextRef=useRef("");
   function startVoice() {
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return;
     const rec=new SR(); rec.lang="es-AR"; rec.continuous=false; rec.interimResults=false;
-    rec.onresult=e=>{setInput(p=>p+e.results[0][0].transcript);setListening(false);}; rec.onerror=()=>setListening(false); rec.onend=()=>setListening(false);
+    rec.onresult=e=>{ voiceTextRef.current=e.results[0][0].transcript; setListening(false); };
+    rec.onerror=()=>setListening(false);
+    rec.onend=()=>{ if(voiceTextRef.current){ sendVoice(voiceTextRef.current); voiceTextRef.current=""; } setListening(false); };
     rec.start(); setListening(true);
+  }
+  async function sendVoice(voiceText) {
+    if(loading) return;
+    const text=(input+voiceText).trim(); if(!text) return;
+    const display=attached?`📎 ${attached.name}
+${text}`:text;
+    const userMsg={role:"user",content:buildContent(text,attached),display};
+    const hist=[...messages,userMsg];
+    setMessages(hist); setInput(""); setAttached(null); setLoading(true); setStatus("");
+    try {
+      let convo=hist.map(m=>({role:m.role,content:m.content}));
+      while(true) {
+        const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:4096,system:agent.system,tools:[{type:"web_search_20250305",name:"web_search"}],messages:convo})});
+        const data=await res.json();
+        if(!data.content) throw new Error(data.error||"Sin respuesta");
+        convo=[...convo,{role:"assistant",content:data.content}];
+        if(data.stop_reason==="end_turn"){const full=getText(data.content);let notaTexto=agent.id==="judicial"?extractNota(full):null;if(agent.id==="judicial"&&!notaTexto){setStatus("📰 Extrayendo nota...");try{const r2=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:2048,system:"Escribí SOLO la nota de prensa del fallo analizado, lista para publicar.",messages:[...convo,{role:"user",content:"Escribí la nota de prensa completa."}]})});const d2=await r2.json();notaTexto=getText(d2.content)||null;}catch(e){}}const clean=cleanText(full);let notaId=null;if(notaTexto){notaId=uid();try{const fd=new Date().toLocaleDateString("es-AR",{day:"numeric",month:"long",year:"numeric"});await fetch("/api/nota",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:notaId,texto:notaTexto,fecha:fd})});}catch(e){}}setMessages([...hist,{role:"assistant",content:clean,display:clean,notaId}]);break;}
+        if(data.stop_reason==="tool_use"){setStatus("🔍 Buscando...");const results=data.content.filter(b=>b.type==="tool_use").map(b=>({type:"tool_result",tool_use_id:b.id,content:"búsqueda completada"}));convo=[...convo,{role:"user",content:results}];continue;}
+        const fb=getText(data.content);if(fb) setMessages([...hist,{role:"assistant",content:fb,display:fb}]);break;
+      }
+    }catch(err){setMessages([...hist,{role:"assistant",content:`Error: ${err.message}`,display:`Error: ${err.message}`}]);}
+    finally{setLoading(false);setStatus("");}
   }
 
   async function handleFile(e) { const f=e.target.files[0]; if(!f) return; const b=await fileToBase64(f); setAttached({name:f.name,base64:b,mediaType:getMediaType(f)}); e.target.value=""; }
@@ -129,7 +154,7 @@ function ChatPanel({agent}) {
             try { const r2=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:2048,system:"Escribí SOLO la nota de prensa del fallo analizado, lista para publicar.",messages:[...convo,{role:"user",content:"Escribí la nota de prensa completa."}]})}); const d2=await r2.json(); notaTexto=getText(d2.content)||null; } catch(e) {}
           }
           const clean=cleanText(full); let notaId=null;
-          if(notaTexto){notaId=uid();try{sessionStorage.setItem("nota_"+notaId,JSON.stringify({texto:notaTexto,fecha:new Date().toLocaleDateString("es-AR",{day:"numeric",month:"long",year:"numeric"})}))}catch(e){}}
+          if(notaTexto){notaId=uid();try{const fd=new Date().toLocaleDateString("es-AR",{day:"numeric",month:"long",year:"numeric"});await fetch("/api/nota",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:notaId,texto:notaTexto,fecha:fd})});}catch(e){}}
           setMessages([...hist,{role:"assistant",content:clean,display:clean,notaId}]); break;
         }
         if(data.stop_reason==="tool_use") { setStatus("🔍 Buscando..."); const results=data.content.filter(b=>b.type==="tool_use").map(b=>({type:"tool_result",tool_use_id:b.id,content:"búsqueda completada"})); convo=[...convo,{role:"user",content:results}]; continue; }
