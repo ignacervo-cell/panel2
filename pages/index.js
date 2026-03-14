@@ -86,23 +86,78 @@ function SummaryPanel({agent}) {
   );
 }
 
+
+function NotaInline({notaId, agent}) {
+  const [nota, setNota] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editando, setEditando] = useState(false);
+  const [texto, setTexto] = useState("");
+
+  useEffect(()=>{
+    fetch(`/api/nota?id=${notaId}`).then(r=>r.json()).then(d=>{
+      if(d?.texto){ setNota(d); setTexto(d.texto); }
+      setLoading(false);
+    }).catch(()=>setLoading(false));
+  },[notaId]);
+
+  async function guardar() {
+    await fetch("/api/nota",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:notaId,texto,fecha:nota?.fecha})});
+    setNota({...nota,texto}); setEditando(false);
+  }
+
+  if(loading) return <div style={{marginTop:8,fontSize:10,color:"#8a9ab0",fontFamily:"'Courier New',monospace"}}>Cargando nota...</div>;
+  if(!nota) return null;
+
+  return (
+    <div style={{marginTop:10,background:"#fff",border:`1.5px solid ${agent.accent}44`,borderRadius:10,overflow:"hidden",maxWidth:"90%"}}>
+      <div style={{padding:"7px 12px",background:agent.accentDim,borderBottom:`1px solid ${agent.accent}22`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{fontSize:9.5,letterSpacing:1.5,color:agent.accent,fontFamily:"'Courier New',monospace"}}>📰 NOTA DE PRENSA · {nota.fecha}</div>
+        <div style={{display:"flex",gap:6}}>
+          <button onClick={()=>setEditando(!editando)} style={{background:"none",border:`1px solid ${agent.accentBorder}`,borderRadius:5,color:agent.accent,fontSize:9.5,padding:"2px 9px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>{editando?"cancelar":"✏️ editar"}</button>
+          <button onClick={()=>window.open(`/nota?id=${notaId}`,"_blank")} style={{background:agent.accent,border:"none",borderRadius:5,color:"#fff",fontSize:9.5,padding:"2px 9px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>🔗 abrir</button>
+        </div>
+      </div>
+      <div style={{padding:"12px 14px"}}>
+        {editando ? (
+          <div>
+            <textarea value={texto} onChange={e=>setTexto(e.target.value)} rows={10}
+              style={{width:"100%",background:"#f8faff",border:`1px solid ${agent.accentBorder}`,borderRadius:7,color:"#1a2a50",fontSize:12,padding:"8px",fontFamily:"Georgia,serif",lineHeight:1.7,resize:"vertical",outline:"none",boxSizing:"border-box"}}/>
+            <button onClick={guardar} style={{marginTop:8,background:`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`,border:"none",borderRadius:7,color:"#fff",fontSize:11,padding:"7px 20px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>💾 Guardar</button>
+          </div>
+        ) : (
+          <div style={{fontSize:13,lineHeight:1.85,color:"#1a2a50",whiteSpace:"pre-wrap",fontFamily:"Georgia,serif"}}>{nota.texto}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ChatPanel({agent}) {
   const [messages,setMessages]=useState([]); const [input,setInput]=useState(""); const [loading,setLoading]=useState(false); const [status,setStatus]=useState(""); const [attached,setAttached]=useState(null); const [listening,setListening]=useState(false);
   const fileRef=useRef(null); const bottomRef=useRef(null);
   useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:"smooth"}); },[messages,loading]);
 
   const voiceTextRef=useRef("");
+  const inputRef=useRef("");
   function startVoice() {
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return;
+    voiceTextRef.current="";
     const rec=new SR(); rec.lang="es-AR"; rec.continuous=false; rec.interimResults=false;
-    rec.onresult=e=>{ voiceTextRef.current=e.results[0][0].transcript; setListening(false); };
+    rec.onresult=e=>{ voiceTextRef.current=e.results[0][0].transcript; };
     rec.onerror=()=>setListening(false);
-    rec.onend=()=>{ if(voiceTextRef.current){ sendVoice(voiceTextRef.current); voiceTextRef.current=""; } setListening(false); };
+    rec.onend=()=>{
+      setListening(false);
+      if(voiceTextRef.current){
+        const combined=(inputRef.current+" "+voiceTextRef.current).trim();
+        voiceTextRef.current="";
+        setInput("");
+        sendDirect(combined);
+      }
+    };
     rec.start(); setListening(true);
   }
-  async function sendVoice(voiceText) {
-    if(loading) return;
-    const text=(input+voiceText).trim(); if(!text) return;
+  async function sendDirect(text) {
+    if(loading||!text) return;
     const display=attached?`📎 ${attached.name}
 ${text}`:text;
     const userMsg={role:"user",content:buildContent(text,attached),display};
@@ -172,7 +227,7 @@ ${text}`:text;
           const isUser=m.role==="user"; const text=m.display||getText(m.content); if(!text) return null;
           return (<div key={i} style={{display:"flex",flexDirection:"column",alignItems:isUser?"flex-end":"flex-start"}}>
             <div style={{maxWidth:"88%",padding:"9px 13px",borderRadius:isUser?"14px 14px 3px 14px":"3px 14px 14px 14px",background:isUser?`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`:"#f0f4ff",color:isUser?"#fff":"#1a2a50",fontSize:12.5,lineHeight:1.75,whiteSpace:"pre-wrap",wordBreak:"break-word",fontFamily:"'Courier New',monospace"}}>{text}</div>
-            {m.notaId&&<button onClick={()=>window.open(`/nota?id=${m.notaId}`,"_blank")} style={{marginTop:5,background:agent.accentDim,border:`1px solid ${agent.accentBorder}`,borderRadius:6,color:agent.accent,fontSize:10,padding:"4px 12px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>🔗 Ver Nota de Prensa</button>}
+            {m.notaId&&<NotaInline notaId={m.notaId} agent={agent}/>}
           </div>);
         })}
         {loading&&<div style={{display:"flex"}}><div style={{padding:"8px 13px",background:"#f0f4ff",borderRadius:"3px 14px 14px 14px",display:"flex",flexDirection:"column",gap:4}}>{status&&<div style={{fontSize:10,color:"#4a5a7a",fontFamily:"'Courier New',monospace"}}>{status}</div>}<TypingDots color={agent.accent}/></div></div>}
@@ -184,7 +239,7 @@ ${text}`:text;
           <button onClick={()=>fileRef.current?.click()} style={{background:"none",border:`1px solid ${agent.accentBorder}`,borderRadius:8,color:agent.accent,fontSize:14,width:34,height:34,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>📎</button>
           <input ref={fileRef} type="file" accept={ACCEPTED} style={{display:"none"}} onChange={handleFile}/>
           <button onClick={startVoice} style={{background:listening?agent.accent:"none",border:`1px solid ${agent.accentBorder}`,borderRadius:8,color:listening?"#fff":agent.accent,fontSize:14,width:34,height:34,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>🎤</button>
-          <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder={agent.placeholder} rows={2}
+          <textarea value={input} onChange={e=>{setInput(e.target.value);inputRef.current=e.target.value;}} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder={agent.placeholder} rows={2}
             style={{flex:1,background:"#f5f7ff",border:`1px solid ${input||attached?agent.accent+"99":agent.accentBorder}`,borderRadius:10,color:"#1a2a50",fontSize:12,padding:"8px 11px",fontFamily:"'Courier New',monospace",resize:"none",outline:"none",lineHeight:1.6,transition:"border 0.2s"}}/>
           <button onClick={send} disabled={loading||(!input.trim()&&!attached)} style={{background:(loading||(!input.trim()&&!attached))?"rgba(255,255,255,0.04)":`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`,border:"none",borderRadius:10,color:(loading||(!input.trim()&&!attached))?"#3a4a6a":"#fff",fontSize:17,width:38,height:38,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>↑</button>
         </div>
