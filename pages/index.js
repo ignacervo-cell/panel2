@@ -1,5 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return mobile;
+}
+
 const PASSWORD = "trelew2026";
 
 const SYSTEM_JUDICIAL = `Sos un experto en comunicación judicial argentina con acceso a búsqueda web.
@@ -252,6 +263,7 @@ ${text}`:text;
 export default function App() {
   const [unlocked,setUnlocked]=useState(false);
   const [active,setActive]=useState(null);
+  const isMobile=useIsMobile();
   useEffect(()=>{ try{if(sessionStorage.getItem("auth")===PASSWORD) setUnlocked(true);}catch(e){} },[]);
   function unlock(){try{sessionStorage.setItem("auth",PASSWORD);}catch(e){}setUnlocked(true);}
   if(!unlocked) return <PasswordGate onUnlock={unlock}/>;
@@ -275,7 +287,7 @@ export default function App() {
           const isActive=active?.id===agent.id;
           return (
             <button key={agent.id} onClick={()=>setActive(isActive?null:agent)}
-              style={{flex:1,padding:"14px 16px",borderRadius:14,border:`1.5px solid ${isActive?agent.accent:agent.accentBorder}`,background:isActive?agent.accentDim:"rgba(255,255,255,0.85)",cursor:"pointer",textAlign:"left",transition:"all 0.2s",boxShadow:isActive?`0 0 20px ${agent.accent}33`:"none",transform:isActive?"translateY(-2px)":"translateY(0)"}}>
+              style={{flex:1,padding:isMobile?"10px 12px":"14px 16px",borderRadius:14,border:`1.5px solid ${isActive?agent.accent:agent.accentBorder}`,background:isActive?agent.accentDim:"rgba(255,255,255,0.85)",cursor:"pointer",textAlign:"left",transition:"all 0.2s",boxShadow:isActive?`0 0 20px ${agent.accent}33`:"none",transform:isActive?"translateY(-2px)":"translateY(0)"}}>
               <div style={{fontSize:24,marginBottom:6}}>{agent.icon}</div>
               <div style={{fontSize:8.5,letterSpacing:2.5,color:isActive?agent.accent:"#3a4a6a",textTransform:"uppercase",fontFamily:"'Courier New',monospace",marginBottom:3}}>{agent.tag}</div>
               <div style={{fontSize:12.5,color:isActive?"#1a2a50":"#3a4a6a",fontFamily:"'Courier New',monospace"}}>{agent.label}</div>
@@ -287,7 +299,7 @@ export default function App() {
 
       {/* Main panel — expands when agent selected */}
       {active && (
-        <div style={{maxWidth:1100,margin:"0 auto",background:"rgba(255,255,255,0.96)",border:`2px solid ${active.accent}55`,borderRadius:18,padding:20,boxShadow:`0 8px 48px rgba(0,0,0,0.12), 0 0 30px ${active.accent}22`,display:"flex",flexDirection:"column",minHeight:680}}>
+        <div style={{maxWidth:1100,margin:"0 auto",background:"rgba(255,255,255,0.96)",border:`2px solid ${active.accent}55`,borderRadius:18,padding:isMobile?12:20,boxShadow:`0 8px 48px rgba(0,0,0,0.12), 0 0 30px ${active.accent}22`,display:"flex",flexDirection:"column",minHeight:680}}>
           {/* Panel header */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,paddingBottom:14,borderBottom:`1px solid ${active.accentBorder}`}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -301,9 +313,9 @@ export default function App() {
           </div>
 
           {/* Summary + Chat side by side */}
-          <div style={{display:"flex",gap:16,flex:1,minHeight:0}}>
+          <div style={{display:"flex",flexDirection:isMobile?"column":"row",gap:16,flex:1,minHeight:0}}>
             {/* Summary left */}
-            <div style={{width:340,flexShrink:0,overflowY:"auto"}}>
+            <div style={{width:isMobile?"100%":340,flexShrink:0,overflowY:"auto",maxHeight:isMobile?280:undefined}}>
               <SummaryPanel agent={active}/>
             </div>
             {/* Chat right */}
