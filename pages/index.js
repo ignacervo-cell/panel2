@@ -63,7 +63,7 @@ function PasswordGate({onUnlock}) {
         <h1 style={{margin:"0 0 28px",fontSize:20,fontWeight:400,color:"#c8d4f0",letterSpacing:2,fontFamily:"Georgia,serif"}}>Panel de Agentes</h1>
         <div style={{position:"relative",display:"inline-flex",alignItems:"center"}}>
           <input type={show?"text":"password"} value={val} onChange={e=>setVal(e.target.value)} onKeyDown={e=>e.key==="Enter"&&check()} placeholder="Contraseña" autoFocus
-            style={{background:"rgba(255,255,255,0.06)",border:`1.5px solid ${err?"#ef4444":"rgba(255,255,255,0.15)"}`,borderRadius:12,color:"#e0e8ff",fontSize:14,padding:"12px 44px 12px 16px",width:220,outline:"none",fontFamily:"'Courier New',monospace"}}/>
+            style={{background:"rgba(255,255,255,0.08)",backdropFilter:"blur(10px)",border:`1.5px solid ${err?"#ef4444":"rgba(255,255,255,0.2)"}`,borderRadius:12,color:"#e0e8ff",fontSize:14,padding:"12px 44px 12px 16px",width:220,outline:"none",fontFamily:"'Courier New',monospace"}}/>
           <button onClick={()=>setShow(!show)} style={{position:"absolute",right:12,background:"none",border:"none",color:"#5a7aaa",cursor:"pointer",fontSize:14}}>{show?"🙈":"👁️"}</button>
         </div>
         <div style={{marginTop:14}}>
@@ -80,9 +80,9 @@ function SummaryPanel({agent}) {
   useEffect(()=>{ fetch(agent.diarioApi).then(r=>r.json()).then(d=>{setData(d);setInit(true);}).catch(()=>setInit(true)); },[agent.id]);
   async function refresh() { setLoading(true); await fetch(agent.diarioApi,{method:"POST"}).catch(()=>{}); const d=await fetch(agent.diarioApi).then(r=>r.json()).catch(()=>({})); setData(d); setLoading(false); }
   return (
-    <div style={{background:"rgba(240,244,255,0.9)",border:`1px solid ${agent.accentBorder}`,borderRadius:10,marginBottom:14,overflow:"hidden"}}>
+    <div style={{background:"rgba(255,255,255,0.06)",border:`1px solid ${agent.accentBorder}`,borderRadius:10,marginBottom:14,overflow:"hidden"}}>
       <div style={{padding:"7px 12px",borderBottom:`1px solid ${agent.accentBorder}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{fontSize:9.5,letterSpacing:1.5,color:agent.accent,fontFamily:"'Courier New',monospace"}}>{data?.fecha?`📅 ${data.fecha}`:"RESUMEN DIARIO"}</div>
+        <div style={{fontSize:9.5,letterSpacing:1.5,color:"rgba(255,255,255,0.7)",fontFamily:"'Courier New',monospace"}}>{data?.fecha?`📅 ${data.fecha}`:"RESUMEN DIARIO"}</div>
         <button onClick={refresh} disabled={loading} style={{background:agent.accentDim,border:`1px solid ${agent.accentBorder}`,borderRadius:6,color:agent.accent,fontSize:9.5,padding:"3px 10px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>{loading?"...":"↻ Act."}</button>
       </div>
       <div style={{padding:"10px 12px",maxHeight:260,overflowY:"auto"}}>
@@ -120,9 +120,9 @@ function NotaInline({notaId, agent}) {
   if(!nota) return null;
 
   return (
-    <div style={{marginTop:10,background:"#fff",border:`1.5px solid ${agent.accent}44`,borderRadius:10,overflow:"hidden",maxWidth:"90%"}}>
-      <div style={{padding:"7px 12px",background:agent.accentDim,borderBottom:`1px solid ${agent.accent}22`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{fontSize:9.5,letterSpacing:1.5,color:agent.accent,fontFamily:"'Courier New',monospace"}}>📰 NOTA DE PRENSA · {nota.fecha}</div>
+    <div style={{marginTop:10,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:10,overflow:"hidden",maxWidth:"90%"}}>
+      <div style={{padding:"7px 12px",background:"rgba(255,255,255,0.05)",borderBottom:"1px solid rgba(255,255,255,0.1)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{fontSize:9.5,letterSpacing:1.5,color:"rgba(255,255,255,0.7)",fontFamily:"'Courier New',monospace"}}>📰 NOTA DE PRENSA · {nota.fecha}</div>
         <div style={{display:"flex",gap:6}}>
           <button onClick={()=>setEditando(!editando)} style={{background:"none",border:`1px solid ${agent.accentBorder}`,borderRadius:5,color:agent.accent,fontSize:9.5,padding:"2px 9px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>{editando?"cancelar":"✏️ editar"}</button>
           <button onClick={()=>window.open(`/nota?id=${notaId}`,"_blank")} style={{background:agent.accent,border:"none",borderRadius:5,color:"#fff",fontSize:9.5,padding:"2px 9px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>🔗 abrir</button>
@@ -132,11 +132,11 @@ function NotaInline({notaId, agent}) {
         {editando ? (
           <div>
             <textarea value={texto} onChange={e=>setTexto(e.target.value)} rows={10}
-              style={{width:"100%",background:"#f8faff",border:`1px solid ${agent.accentBorder}`,borderRadius:7,color:"#1a2a50",fontSize:12,padding:"8px",fontFamily:"Georgia,serif",lineHeight:1.7,resize:"vertical",outline:"none",boxSizing:"border-box"}}/>
+              style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:7,color:"rgba(255,255,255,0.9)",fontSize:12,padding:"8px",fontFamily:"Georgia,serif",lineHeight:1.7,resize:"vertical",outline:"none",boxSizing:"border-box"}}/>
             <button onClick={guardar} style={{marginTop:8,background:`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`,border:"none",borderRadius:7,color:"#fff",fontSize:11,padding:"7px 20px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>💾 Guardar</button>
           </div>
         ) : (
-          <div style={{fontSize:13,lineHeight:1.85,color:"#1a2a50",whiteSpace:"pre-wrap",fontFamily:"Georgia,serif"}}>{nota.texto}</div>
+          <div style={{fontSize:13,lineHeight:1.85,color:"rgba(255,255,255,0.88)",whiteSpace:"pre-wrap",fontFamily:"Georgia,serif"}}>{nota.texto}</div>
         )}
       </div>
     </div>
@@ -233,28 +233,28 @@ ${text}`:text;
   return (
     <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0}}>
       <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:8,paddingBottom:8,minHeight:120}}>
-        {messages.length===0&&<div style={{textAlign:"center",marginTop:40,opacity:0.3}}><div style={{fontSize:28,marginBottom:6}}>{agent.icon}</div><div style={{fontSize:11,color:"#9aaac0",fontFamily:"'Courier New',monospace"}}>Listo para trabajar</div></div>}
+        {messages.length===0&&<div style={{textAlign:"center",marginTop:40,opacity:0.3}}><div style={{fontSize:28,marginBottom:6}}>{agent.icon}</div><div style={{fontSize:11,color:"rgba(255,255,255,0.25)",fontFamily:"'Courier New',monospace"}}>Listo para trabajar</div></div>}
         {messages.map((m,i)=>{
           const isUser=m.role==="user"; const text=m.display||getText(m.content); if(!text) return null;
           return (<div key={i} style={{display:"flex",flexDirection:"column",alignItems:isUser?"flex-end":"flex-start"}}>
-            <div style={{maxWidth:"88%",padding:"9px 13px",borderRadius:isUser?"14px 14px 3px 14px":"3px 14px 14px 14px",background:isUser?`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`:"#f0f4ff",color:isUser?"#fff":"#1a2a50",fontSize:12.5,lineHeight:1.75,whiteSpace:"pre-wrap",wordBreak:"break-word",fontFamily:"'Courier New',monospace"}}>{text}</div>
+            <div style={{maxWidth:"88%",padding:"9px 13px",borderRadius:isUser?"14px 14px 3px 14px":"3px 14px 14px 14px",background:isUser?`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`:"rgba(255,255,255,0.1)",color:isUser?"#fff":"rgba(255,255,255,0.9)",fontSize:12.5,lineHeight:1.75,whiteSpace:"pre-wrap",wordBreak:"break-word",fontFamily:"'Courier New',monospace"}}>{text}</div>
             {m.notaId&&<NotaInline notaId={m.notaId} agent={agent}/>}
           </div>);
         })}
-        {loading&&<div style={{display:"flex"}}><div style={{padding:"8px 13px",background:"#f0f4ff",borderRadius:"3px 14px 14px 14px",display:"flex",flexDirection:"column",gap:4}}>{status&&<div style={{fontSize:10,color:"#4a5a7a",fontFamily:"'Courier New',monospace"}}>{status}</div>}<TypingDots color={agent.accent}/></div></div>}
+        {loading&&<div style={{display:"flex"}}><div style={{padding:"8px 13px",background:"rgba(255,255,255,0.1)",borderRadius:"3px 14px 14px 14px",display:"flex",flexDirection:"column",gap:4}}>{status&&<div style={{fontSize:10,color:"#4a5a7a",fontFamily:"'Courier New',monospace"}}>{status}</div>}<TypingDots color={agent.accent}/></div></div>}
         <div ref={bottomRef}/>
       </div>
       <div style={{borderTop:`1px solid ${agent.accentBorder}`,paddingTop:10,marginTop:4,flexShrink:0}}>
-        {attached&&<div style={{display:"flex",alignItems:"center",gap:6,marginBottom:7,padding:"5px 10px",background:agent.accentDim,borderRadius:7,border:`1px solid ${agent.accentBorder}`}}><span style={{fontSize:12}}>{attached.mediaType.startsWith("image/")?"🖼️":"📄"}</span><span style={{fontSize:10,color:agent.accent,flex:1,fontFamily:"'Courier New',monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attached.name}</span><button onClick={()=>setAttached(null)} style={{background:"none",border:"none",color:"#6a7a9a",cursor:"pointer",fontSize:14}}>✕</button></div>}
+        {attached&&<div style={{display:"flex",alignItems:"center",gap:6,marginBottom:7,padding:"5px 10px",background:"rgba(255,255,255,0.1)",borderRadius:7,border:"1px solid rgba(255,255,255,0.2)"}}><span style={{fontSize:12}}>{attached.mediaType.startsWith("image/")?"🖼️":"📄"}</span><span style={{fontSize:10,color:"rgba(255,255,255,0.8)",flex:1,fontFamily:"'Courier New',monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attached.name}</span><button onClick={()=>setAttached(null)} style={{background:"none",border:"none",color:"#6a7a9a",cursor:"pointer",fontSize:14}}>✕</button></div>}
         <div style={{display:"flex",gap:6,alignItems:"flex-end"}}>
           <button onClick={()=>fileRef.current?.click()} style={{background:"none",border:`1px solid ${agent.accentBorder}`,borderRadius:8,color:agent.accent,fontSize:14,width:34,height:34,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>📎</button>
           <input ref={fileRef} type="file" accept={ACCEPTED} style={{display:"none"}} onChange={handleFile}/>
           <button onClick={startVoice} style={{background:listening?agent.accent:"none",border:`1px solid ${agent.accentBorder}`,borderRadius:8,color:listening?"#fff":agent.accent,fontSize:14,width:34,height:34,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>🎤</button>
           <textarea value={input} onChange={e=>{setInput(e.target.value);inputRef.current=e.target.value;}} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder={agent.placeholder} rows={2}
-            style={{flex:1,background:"#f5f7ff",border:`1px solid ${input||attached?agent.accent+"99":agent.accentBorder}`,borderRadius:10,color:"#1a2a50",fontSize:12,padding:"8px 11px",fontFamily:"'Courier New',monospace",resize:"none",outline:"none",lineHeight:1.6,transition:"border 0.2s"}}/>
+            style={{flex:1,background:"rgba(255,255,255,0.08)",border:`1px solid ${input||attached?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.12)"}`,borderRadius:10,color:"rgba(255,255,255,0.9)",fontSize:12,padding:"8px 11px",fontFamily:"'Courier New',monospace",resize:"none",outline:"none",lineHeight:1.6,transition:"border 0.2s"}}/>
           <button onClick={send} disabled={loading||(!input.trim()&&!attached)} style={{background:(loading||(!input.trim()&&!attached))?"rgba(255,255,255,0.04)":`linear-gradient(135deg,${agent.accent},${agent.accent}cc)`,border:"none",borderRadius:10,color:(loading||(!input.trim()&&!attached))?"#3a4a6a":"#fff",fontSize:17,width:38,height:38,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>↑</button>
         </div>
-        <div style={{marginTop:5,fontSize:9,color:"#9aaac0",fontFamily:"'Courier New',monospace"}}>ENTER enviar · SHIFT+ENTER nueva línea</div>
+        <div style={{marginTop:5,fontSize:9,color:"rgba(255,255,255,0.2)",fontFamily:"'Courier New',monospace"}}>ENTER enviar · SHIFT+ENTER nueva línea</div>
       </div>
     </div>
   );
@@ -269,14 +269,14 @@ export default function App() {
   if(!unlocked) return <PasswordGate onUnlock={unlock}/>;
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#e8edf8 0%,#f0f4ff 50%,#e4eaf5 100%)",padding:"18px 16px",fontFamily:"Georgia,serif"}}>
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 70%,#533483 100%)",padding:"18px 16px",fontFamily:"Georgia,serif"}}>
       {/* Header */}
       <div style={{textAlign:"center",marginBottom:24}}>
-        <div style={{fontSize:9,letterSpacing:5,color:"#6a80b0",textTransform:"uppercase",marginBottom:5,fontFamily:"'Courier New',monospace"}}>IGNACIO SOTO · TRELEW, CHUBUT</div>
-        <h1 style={{margin:0,fontSize:22,fontWeight:400,color:"#1a2a50",letterSpacing:3,textTransform:"uppercase"}}>Panel de Agentes</h1>
+        <div style={{fontSize:9,letterSpacing:5,color:"rgba(255,255,255,0.45)",textTransform:"uppercase",marginBottom:5,fontFamily:"'Courier New',monospace"}}>IGNACIO SOTO · TRELEW, CHUBUT</div>
+        <h1 style={{margin:0,fontSize:22,fontWeight:400,color:"rgba(255,255,255,0.95)",letterSpacing:3,textTransform:"uppercase"}}>Panel de Agentes</h1>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginTop:6}}>
           <div style={{height:"1px",width:60,background:"linear-gradient(90deg,transparent,#1e3a6a)"}}/>
-          <div style={{fontSize:8,letterSpacing:3,color:"#8a9bc0",fontFamily:"'Courier New',monospace"}}>SISTEMA DE INTELIGENCIA</div>
+          <div style={{fontSize:8,letterSpacing:3,color:"rgba(255,255,255,0.3)",fontFamily:"'Courier New',monospace"}}>SISTEMA DE INTELIGENCIA</div>
           <div style={{height:"1px",width:60,background:"linear-gradient(90deg,#1e3a6a,transparent)"}}/>
         </div>
       </div>
@@ -287,11 +287,11 @@ export default function App() {
           const isActive=active?.id===agent.id;
           return (
             <button key={agent.id} onClick={()=>setActive(isActive?null:agent)}
-              style={{flex:1,padding:isMobile?"10px 12px":"14px 16px",borderRadius:14,border:`1.5px solid ${isActive?agent.accent:agent.accentBorder}`,background:isActive?agent.accentDim:"rgba(255,255,255,0.85)",cursor:"pointer",textAlign:"left",transition:"all 0.2s",boxShadow:isActive?`0 0 20px ${agent.accent}33`:"none",transform:isActive?"translateY(-2px)":"translateY(0)"}}>
+              style={{flex:1,padding:isMobile?"10px 12px":"14px 16px",borderRadius:14,border:`1px solid ${isActive?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.12)"}`,background:isActive?`rgba(255,255,255,0.18)`:"rgba(255,255,255,0.08)",cursor:"pointer",textAlign:"left",transition:"all 0.25s",boxShadow:isActive?`0 8px 32px ${agent.accent}44,inset 0 1px 0 rgba(255,255,255,0.2)`:"0 4px 16px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.08)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",transform:isActive?"translateY(-2px)":"translateY(0)"}}>
               <div style={{fontSize:24,marginBottom:6}}>{agent.icon}</div>
-              <div style={{fontSize:8.5,letterSpacing:2.5,color:isActive?agent.accent:"#3a4a6a",textTransform:"uppercase",fontFamily:"'Courier New',monospace",marginBottom:3}}>{agent.tag}</div>
-              <div style={{fontSize:12.5,color:isActive?"#1a2a50":"#3a4a6a",fontFamily:"'Courier New',monospace"}}>{agent.label}</div>
-              <div style={{marginTop:8,fontSize:9,color:isActive?agent.accent+"99":"#8a9ab0",fontFamily:"'Courier New',monospace"}}>{isActive?"▼ activo":"→ seleccionar"}</div>
+              <div style={{fontSize:8.5,letterSpacing:2.5,color:isActive?"rgba(255,255,255,0.9)":"rgba(255,255,255,0.4)",textTransform:"uppercase",fontFamily:"'Courier New',monospace",marginBottom:3}}>{agent.tag}</div>
+              <div style={{fontSize:12.5,color:isActive?"#fff":"rgba(255,255,255,0.7)",fontFamily:"'Courier New',monospace"}}>{agent.label}</div>
+              <div style={{marginTop:8,fontSize:9,color:isActive?"rgba(255,255,255,0.5)":"rgba(255,255,255,0.25)",fontFamily:"'Courier New',monospace"}}>{isActive?"▼ activo":"→ seleccionar"}</div>
             </button>
           );
         })}
@@ -299,17 +299,17 @@ export default function App() {
 
       {/* Main panel — expands when agent selected */}
       {active && (
-        <div style={{maxWidth:1100,margin:"0 auto",background:"rgba(255,255,255,0.96)",border:`2px solid ${active.accent}55`,borderRadius:18,padding:isMobile?12:20,boxShadow:`0 8px 48px rgba(0,0,0,0.12), 0 0 30px ${active.accent}22`,display:"flex",flexDirection:"column",minHeight:680}}>
+        <div style={{maxWidth:1100,margin:"0 auto",background:"rgba(255,255,255,0.96)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:18,padding:isMobile?12:20,boxShadow:"0 8px 48px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.2)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",display:"flex",flexDirection:"column",minHeight:680}}>
           {/* Panel header */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,paddingBottom:14,borderBottom:`1px solid ${active.accentBorder}`}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:38,height:38,borderRadius:10,background:active.accentDim,border:`2px solid ${active.accent}55`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{active.icon}</div>
+              <div style={{width:38,height:38,borderRadius:10,background:active.accentDim,border:"1px solid rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{active.icon}</div>
               <div>
                 <div style={{fontSize:9,letterSpacing:2.5,color:active.accent,textTransform:"uppercase",fontFamily:"'Courier New',monospace"}}>{active.tag}</div>
-                <div style={{fontSize:15,color:"#e0e8ff",fontFamily:"'Courier New',monospace"}}>{active.label}</div>
+                <div style={{fontSize:15,color:"rgba(255,255,255,0.95)",fontFamily:"'Courier New',monospace"}}>{active.label}</div>
               </div>
             </div>
-            <button onClick={()=>setActive(null)} style={{background:"none",border:`1px solid ${active.accentBorder}`,borderRadius:8,color:"#4a5a7a",fontSize:11,padding:"5px 14px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>✕ cerrar</button>
+            <button onClick={()=>setActive(null)} style={{background:"none",border:"1px solid rgba(255,255,255,0.2)",borderRadius:8,color:"rgba(255,255,255,0.5)",background:"rgba(255,255,255,0.05)",fontSize:11,padding:"5px 14px",cursor:"pointer",fontFamily:"'Courier New',monospace"}}>✕ cerrar</button>
           </div>
 
           {/* Summary + Chat side by side */}
@@ -332,7 +332,7 @@ export default function App() {
         </div>
       )}
 
-      <div style={{textAlign:"center",marginTop:20,fontSize:8.5,color:"#9aaac0",letterSpacing:2,fontFamily:"'Courier New',monospace"}}>🌐 BÚSQUEDA WEB · 📎 ARCHIVOS · 🎤 VOZ</div>
+      <div style={{textAlign:"center",marginTop:20,fontSize:8.5,color:"rgba(255,255,255,0.2)",letterSpacing:2,fontFamily:"'Courier New',monospace"}}>🌐 BÚSQUEDA WEB · 📎 ARCHIVOS · 🎤 VOZ</div>
     </div>
   );
 }
